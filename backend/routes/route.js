@@ -97,15 +97,10 @@ router.post('/admin/users', auth, isAdmin, (req, res) => {
   // res.status(200).json({ message: 'Add user route' });
 });
 
-router.put('/admin/users/:userId/restrict', auth, isAdmin, (req, res) => {
-  adminController.restrictUser(req, res);
-  // res.status(200).json({ message: 'Restrict user route' });
+router.delete('/admin/users/:userId', auth, isAdmin, (req, res) => {
+  adminController.deleteUser(req, res);
 });
 
-router.put('/admin/users/:userId/activate', auth, isAdmin, (req, res) => {
-  adminController.activateUser(req, res);
-  // res.status(200).json({ message: 'Activate user route' });
-});
 
 router.get('/admin/reports', auth, isAdmin, (req, res) => {
   adminController.getAllReports(req, res);

@@ -1,12 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../store/authStore';
 
-const Navbar = ({ showSignup = true, showLogin = true }) => {
+const Navbar = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   const handleBrandClick = () => {
     navigate('/');
     window.scrollTo(0, 0); // Scroll to top when navigating home
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
   };
 
   return (
@@ -15,21 +22,36 @@ const Navbar = ({ showSignup = true, showLogin = true }) => {
         Resonance
       </div>
       <div className="flex gap-4">
-        {showLogin && (
-          <button 
-            onClick={() => navigate('/login')} 
-            className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
-          >
-            Login
-          </button>
-        )}
-        {showSignup && (
-          <button 
-            onClick={() => navigate('/signup')} 
-            className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
-          >
-            Sign Up
-          </button>
+        {!isAuthenticated ? (
+          <>
+            <button 
+              onClick={() => navigate('/login')} 
+              className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
+            >
+              Login
+            </button>
+            <button 
+              onClick={() => navigate('/signup')} 
+              className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
+            >
+              Sign Up
+            </button>
+          </>
+        ) : (
+          <>
+            <button 
+              onClick={() => navigate('/profile')} 
+              className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
+            >
+              {user?.name || 'Profile'}
+            </button>
+            <button 
+              onClick={handleLogout} 
+              className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
+            >
+              Logout
+            </button>
+          </>
         )}
       </div>
     </nav>

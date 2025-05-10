@@ -14,69 +14,12 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Search users by username
-export const searchUsersByUsername = async (req, res) => {
-  try {
-    const { username } = req.query;
-    
-    if (!username) {
-      return res.status(400).json({ message: 'Username query parameter is required' });
-    }
 
-    const users = await User.find({
-      name: { $regex: username, $options: 'i' }
-    }).select('-password');
 
-    res.status(200).json(users);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
 
-// Add user (by admin)
-export const addUser = async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
 
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user (admin-created users are automatically verified)
-    user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      role: role || 'user',
-      isEmailVerified: true
-    });
-
-    await user.save();
-
-    res.status(201).json({
-      message: 'User created successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// Restrict user
-export const restrictUser = async (req, res) => {
+// Delete user
+export const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -96,11 +39,8 @@ export const restrictUser = async (req, res) => {
       return res.status(403).json({ message: 'Cannot restrict admin accounts' });
     }
 
-    user.isActive = false;
-    user.updatedAt = Date.now();
-    await user.save();
-
-    res.status(200).json({ message: 'User restricted successfully' });
+    user.deleteOne()
+    res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
