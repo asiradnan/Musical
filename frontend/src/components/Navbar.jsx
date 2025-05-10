@@ -22,6 +22,12 @@ const Navbar = () => {
         Resonance
       </div>
       <div className="flex gap-4">
+        <button 
+          onClick={() => navigate('/about')} 
+          className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
+        >
+          About
+        </button>
         {!isAuthenticated ? (
           <>
             <button 
