@@ -30,10 +30,10 @@ const useAuthStore = create(
         }
       },
 
-      register: async (name, email, password) => {
+      register: async (userData) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await api.post('/auth/register', { name, email, password });
+          const response = await api.post('/auth/register', userData);
           set({ isLoading: false });
           return response.data;
         } catch (error) {
@@ -44,6 +44,7 @@ const useAuthStore = create(
           return false;
         }
       },
+      
 
       logout: async () => {
         try {
