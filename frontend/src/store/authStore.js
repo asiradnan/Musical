@@ -7,8 +7,9 @@ const useAuthStore = create(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
-      isLoading: true,
+      isLoading: false, // Changed initial loading state to false
       error: null,
+      initialized: false, // Add flag to track initialization
 
       login: async (email, password) => {
         set({ isLoading: true, error: null });
@@ -16,6 +17,7 @@ const useAuthStore = create(
           const response = await api.post('/auth/login', { email, password });
           const { accessToken, refreshToken, user } = response.data;
           
+          // Store tokens in localStorage
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('refreshToken', refreshToken);
           
@@ -30,10 +32,10 @@ const useAuthStore = create(
         }
       },
 
-      register: async (userData) => {
+      register: async (name, email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await api.post('/auth/register', userData);
+          const response = await api.post('/auth/register', { name, email, password });
           set({ isLoading: false });
           return response.data;
         } catch (error) {
@@ -44,7 +46,6 @@ const useAuthStore = create(
           return false;
         }
       },
-      
 
       logout: async () => {
         try {
@@ -57,41 +58,61 @@ const useAuthStore = create(
         } finally {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
+          localStorage.removeItem('auth-storage');
+          localStorage.removeItem('user');
           set({ user: null, isAuthenticated: false });
         }
       },
 
       checkAuth: async () => {
-        set({ isLoading: true });
+        // Add a check to prevent multiple calls
+        if (get().isLoading) return false;
+        // Don't check auth if already initialized and no token exists
         const token = localStorage.getItem('accessToken');
-        if (!token) {
-          set({ isAuthenticated: false, isLoading: false });
+        if (get().initialized && !token) {
           return false;
         }
 
+        set({ isLoading: true });
+        
         try {
           const response = await api.get('/users/profile');
-          set({ user: response.data, isAuthenticated: true, isLoading: false });
+          console.log('Auth check response:', response.data);
+          set({ 
+            user: response.data, 
+            isAuthenticated: true, 
+            isLoading: false, 
+            initialized: true 
+          });
           return true;
         } catch (error) {
           console.error('Auth check error:', error);
           // Don't clear tokens here, let the axios interceptor handle token refresh
-          set({ isLoading: false });
-          if (error.response?.status === 401) {
-            set({ isAuthenticated: false, user: null });
-          }
+          set({ 
+            isLoading: false, 
+            initialized: true,
+            isAuthenticated: false, 
+            user: null 
+          });
           return false;
         }
       },
       
       updateUser: (userData) => {
         set({ user: { ...get().user, ...userData } });
+      },
+
+      setInitialized: () => {
+        set({ initialized: true });
       }
     }),
     {
       name: 'auth-storage', // unique name for localStorage
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({ 
+        user: state.user, 
+        isAuthenticated: state.isAuthenticated 
+      }),
     }
   )
 );

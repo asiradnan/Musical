@@ -10,12 +10,50 @@ const router = express.Router();
 import * as authController from '../controllers/auth.js';
 import * as userController from '../controllers/user.js';
 import * as adminController from '../controllers/admin.js';
-import * as reportController from '../controllers/report.js';
-import * as itemController from '../controllers/item.js';
-import * as claimController from '../controllers/claim.js';
-import * as volunteerController from '../controllers/volunteer.js';
-import * as botChatController from '../controllers/chat.js';
+import * as collaborationController from '../controllers/collaboration.js';
+import * as studioController from '../controllers/studio.js';
+import * as bookingController from '../controllers/booking.js';
+import * as rewardController from '../controllers/reward.js';
+import * as productController from '../controllers/product.js';
+// Add these routes to your existing routes file
 
+// Reward system routes
+// User-facing routes
+router.get('/users/points', auth, (req, res) => {
+  rewardController.getUserPoints(req, res);
+});
+
+router.get('/users/:userId/points', auth, (req, res) => {
+  rewardController.getUserPoints(req, res);
+});
+
+// Admin routes for reward system management
+router.post('/admin/rewards/points', auth, isAdmin, (req, res) => {
+  rewardController.addPoints(req, res);
+});
+
+router.get('/admin/rewards/config', auth, isAdmin, (req, res) => {
+  rewardController.getRewardConfig(req, res);
+});
+
+router.put('/admin/rewards/config', auth, isAdmin, (req, res) => {
+  rewardController.updateRewardConfig(req, res);
+});
+
+router.post('/admin/rewards/process-expired', auth, isAdmin, (req, res) => {
+  rewardController.processExpiredPoints(req, res);
+});
+// Add this to your existing reward system routes section
+router.get('/rewards/user/:userId', auth, (req, res) => {
+  rewardController.getUserRewards(req, res);
+});
+
+
+// Add this to the existing reward system routes section
+// User-facing route to add points (for purchases)
+router.post('/rewards/points', auth, (req, res) => {
+  rewardController.addUserPoints(req, res);
+});
 
 // Authentication routes
 router.post('/auth/register', (req, res) => {
@@ -100,113 +138,15 @@ router.post('/admin/users', auth, isAdmin, (req, res) => {
 router.delete('/admin/users/:userId', auth, isAdmin, (req, res) => {
   adminController.deleteUser(req, res);
 });
+// Add these routes to your existing admin routes file
+
+// Booking management routes
+router.get('/bookings', auth, isAdmin, adminController.getAllBookings);
+router.put('/bookings/:bookingId/cancel', auth, adminController.cancelBooking);
 
 
-router.get('/admin/reports', auth, isAdmin, (req, res) => {
-  adminController.getAllReports(req, res);
-  // res.status(200).json({ message: 'Get all reports route' });
-});
 
-router.put('/admin/reports/:reportId/status', auth, isAdmin, (req, res) => {
-  adminController.updateReportStatus(req, res);
-});
-router.get('/admin/claims', auth, isAdmin, (req, res) => {
-  adminController.getAllClaims(req, res);
-});
-router.get('/admin/items', auth, isAdmin, (req, res) => {
-  adminController.getAllItems(req, res);
-});
 
-// Report routes
-router.post('/reports/users/:userId', auth, (req, res) => {
-  reportController.reportUser(req, res);
-  // res.status(200).json({ message: 'Report user route' });
-});
-
-router.get('/reports/my-reports', auth, (req, res) => {
-  reportController.getMyReports(req, res);
-  // res.status(200).json({ message: 'Get my reports route' });
-});
-
-// Item routes
-router.post('/items', auth, upload.array('images', 5), (req, res) => {
-  itemController.createItem(req, res);
-});
-
-router.get('/items', (req, res) => {
-  itemController.getAllItems(req, res);
-});
-
-router.get('/items/search', (req, res) => {
-  itemController.searchItems(req, res);
-});
-
-router.get('/items/:itemId', (req, res) => {
-  itemController.getItemById(req, res);
-});
-
-router.put('/items/:itemId', auth, (req, res) => {
-  itemController.updateItem(req, res);
-});
-
-router.delete('/items/:itemId', auth, (req, res) => {
-  itemController.deleteItem(req, res);
-});
-
-router.put('/items/:itemId/status', auth, isAdmin, (req, res) => {
-  itemController.updateItemStatus(req, res);
-});
-
-router.post('/items/:itemId/follow', auth, (req, res) => {
-  itemController.followItem(req, res);
-});
-
-router.delete('/items/:itemId/follow', auth, (req, res) => {
-  itemController.unfollowItem(req, res);
-});
-
-// Claim routes
-router.post('/items/:itemId/claims', auth, (req, res) => {
-  claimController.createClaim(req, res);
-});
-
-router.get('/items/:itemId/claims', auth, (req, res) => {
-  claimController.getItemClaims(req, res);
-});
-
-router.get('/claims/:claimId', auth, (req, res) => {
-  claimController.getClaimById(req, res);
-});
-
-router.put('/claims/:claimId/status', auth, isAdmin, (req, res) => {
-  claimController.updateClaimStatus(req, res);
-});
-
-router.get('/users/success-rate', auth, (req, res) => {
-  userController.getUserSuccessRate(req, res);
-});
-
-// Notification routes
-// router.get('/notifications', auth, (req, res) => {
-//   notificationController.getUserNotifications(req, res);
-// });
-
-// router.put('/notifications/:notificationId/read', auth, (req, res) => {
-//   notificationController.markNotificationAsRead(req, res);
-// });
-
-// router.put('/notifications/read-all', auth, (req, res) => {
-//   notificationController.markAllNotificationsAsRead(req, res);
-// });
-
-// Rating routes
-// router.post('/users/:userId/ratings', auth, (req, res) => {
-//   ratingController.rateUser(req, res);
-// });
-
-// router.get('/users/:userId/ratings', (req, res) => {
-//   ratingController.getUserRatings(req, res);
-// });
 
 // Upload single image
 router.post('/upload', auth, upload.single('image'), uploadSingleImage);
@@ -219,60 +159,123 @@ router.delete('/:filename', auth, deleteImage);
 
 
 
-// Volunteer routes
-router.get('/volunteers', (req, res) => {
-  volunteerController.getAllVolunteers(req, res);
+// Collaboration routes
+router.get('/collaboration/posts', auth, (req, res) => {
+  collaborationController.getPosts(req, res);
+});
+
+router.post('/collaboration/posts', auth, (req, res) => {
+  collaborationController.createPost(req, res);
+});
+
+router.get('/collaboration/posts/:postId', auth, (req, res) => {
+  collaborationController.getPostById(req, res);
+});
+
+router.put('/collaboration/posts/:postId', auth, (req, res) => {
+  collaborationController.updatePost(req, res);
+});
+
+router.delete('/collaboration/posts/:postId', auth, (req, res) => {
+  collaborationController.deletePost(req, res);
+});
+
+router.get('/collaboration/posts/:postId/comments', auth, (req, res) => {
+  collaborationController.getComments(req, res);
+});
+
+router.post('/collaboration/posts/:postId/comments', auth, (req, res) => {
+  collaborationController.addComment(req, res);
+});
+
+router.delete('/collaboration/comments/:commentId', auth, (req, res) => {
+  collaborationController.deleteComment(req, res);
 });
 
 
-
-router.post('/volunteers/apply', auth, (req, res) => {
-  volunteerController.applyForVolunteer(req, res);
+// Artist release routes
+router.get('/users/releases', auth, (req, res) => {
+  userController.getUserReleases(req, res);
 });
 
-router.get('/volunteers/my-status', auth, (req, res) => {
-  volunteerController.getMyVolunteerStatus(req, res);
+router.post('/users/releases', auth, (req, res) => {
+  userController.addRelease(req, res);
 });
 
-router.put('/volunteers/profile', auth, (req, res) => {
-  volunteerController.updateVolunteerProfile(req, res);
-});
-router.get('/volunteers/:volunteerId', (req, res) => {
-  volunteerController.getVolunteerById(req, res);
+router.delete('/users/releases/:releaseId', auth, (req, res) => {
+  userController.deleteRelease(req, res);
 });
 
-// Admin volunteer management routes
-router.get('/admin/volunteers/applications', auth, isAdmin, (req, res) => {
-  volunteerController.getVolunteerApplications(req, res);
+// Studio routes
+router.post('/studios', auth, isAdmin, upload.array('images', 5), (req, res) => {
+  studioController.createStudio(req, res);
 });
 
-router.put('/admin/volunteers/:volunteerId/approve', auth, isAdmin, (req, res) => {
-  volunteerController.approveVolunteerApplication(req, res);
+router.get('/studios', (req, res) => {
+  studioController.getAllStudios(req, res);
 });
 
-router.put('/admin/volunteers/:volunteerId/reject', auth, isAdmin, (req, res) => {
-  volunteerController.rejectVolunteerApplication(req, res);
+router.get('/studios/:studioId', (req, res) => {
+  studioController.getStudioById(req, res);
 });
 
-router.put('/admin/volunteers/:volunteerId/remove', auth, isAdmin, (req, res) => {
-  volunteerController.removeVolunteerStatus(req, res);
+router.put('/studios/:studioId', auth, isAdmin, upload.array('images', 5), (req, res) => {
+  studioController.updateStudio(req, res);
 });
 
-router.put('/admin/volunteers/:volunteerId/promote', auth, isAdmin, (req, res) => {
-  volunteerController.promoteVolunteer(req, res);
+router.delete('/studios/:studioId', auth, isAdmin, (req, res) => {
+  studioController.deleteStudio(req, res);
 });
 
-// Chat routes
-router.get('/bot-chat', auth, (req, res) => {
-  botChatController.getBotChat(req, res);
+router.get('/studios/:studioId/availability', (req, res) => {
+  studioController.checkStudioAvailability(req, res);
 });
 
-router.post('/bot-chat/message', auth, (req, res) => {
-  botChatController.sendBotMessage(req, res);
+// Booking routes
+router.post('/bookings', auth, (req, res) => {
+  bookingController.createBooking(req, res);
 });
 
-router.post('/bot-chat/clear', auth, (req, res) => {
-  botChatController.clearBotChat(req, res);
+router.get('/bookings/user', auth, (req, res) => {
+  bookingController.getUserBookings(req, res);
 });
+
+router.get('/bookings/:bookingId', auth, (req, res) => {
+  bookingController.getBookingById(req, res);
+});
+
+router.put('/bookings/:bookingId/status', auth, (req, res) => {
+  bookingController.updateBookingStatus(req, res);
+});
+
+router.put('/bookings/:bookingId/payment', auth, isAdmin, (req, res) => {
+  bookingController.updatePaymentStatus(req, res);
+});
+
+router.get('/studios/:studioId/bookings', auth, isAdmin, (req, res) => {
+  bookingController.getStudioBookings(req, res);
+});
+
+router.get('/bookings', auth, isAdmin, (req, res) => {
+  bookingController.getAllBookings(req, res);
+});
+
+router.put('/bookings/:bookingId/cancel', auth, (req, res) => {
+  bookingController.cancelBooking(req, res);
+});
+
+// Product comment routes
+router.get('/products/:productId/comments', auth, (req, res) => {
+  productController.getProductComments(req, res);
+});
+
+router.post('/products/:productId/comments', auth, (req, res) => {
+  productController.addProductComment(req, res);
+});
+
+router.delete('/products/comments/:commentId', auth, (req, res) => {
+  productController.deleteProductComment(req, res);
+});
+
 
 export default router;

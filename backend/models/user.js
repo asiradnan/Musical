@@ -33,6 +33,33 @@ const UserSchema = new mongoose.Schema({
     emailVerificationToken: String,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    // Points system fields
+    points: {
+      total: {
+        type: Number,
+        default: 0
+      },
+      history: [{
+        amount: Number,
+        activity: {
+          type: String,
+          enum: ['booking', 'purchase', 'rental', 'referral', 'other'],
+          required: true
+        },
+        description: String,
+        referenceId: mongoose.Schema.Types.ObjectId, // ID of booking, purchase, etc.
+        createdAt: {
+          type: Date,
+          default: Date.now
+        },
+        expiresAt: Date
+      }]
+    },
+    tier: {
+      type: String,
+      enum: ['Bronze', 'Silver', 'Gold', 'Platinum'],
+      default: 'Bronze'
+    },
     createdAt: {
       type: Date,
       default: Date.now

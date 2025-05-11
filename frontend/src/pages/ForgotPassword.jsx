@@ -25,9 +25,9 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="app-background min-h-screen">
+    <div className="flex flex-col min-h-screen bg-cover bg-center text-white" style={{ backgroundImage: "url('piano-background.jpg')" }}>
       <Navbar showLogin={false} />
-      <div className="min-h-screen flex justify-center items-center px-4">
+      <div className="flex-1 flex justify-center items-center px-4">
         <div className="bg-black/70 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-full max-w-md border border-white/30 text-white">
           <h1 className="text-center text-3xl font-bold mb-8">Forgot Password</h1>
           

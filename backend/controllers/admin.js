@@ -1,7 +1,62 @@
 import User from '../models/user.js';
-import Report from '../models/report.js';
-import Item from '../models/item.js';
 import bcrypt from 'bcryptjs';
+// Add these functions to the existing admin.js controller
+
+import Booking from '../models/Booking.js';
+
+// Get all bookings
+export const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate('user', 'name email')
+      .populate('studio', 'name location')
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Cancel booking
+export const cancelBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    
+    if (booking.status === 'cancelled') {
+      return res.status(400).json({ message: 'Booking is already cancelled' });
+    }
+    
+    if (booking.status === 'completed') {
+      return res.status(400).json({ message: 'Cannot cancel a completed booking' });
+    }
+    if (booking.createdAt - Date.now() < 24 * 60 * 60) {
+      return res.status(400).json({ message: 'Booking cannot be cancelled within 24 hours of booking' });
+    }
+    
+    booking.status = 'cancelled';
+    const reason = 'Cancelled by admin';
+    booking.cancelReason = reason || 'Cancelled by admin';
+    booking.cancelledAt = new Date();
+    booking.cancelledBy = req.user.userId;
+    booking.updatedAt = new Date();
+    
+    await booking.save();
+    
+    // You might want to add notification logic here to inform the user
+    
+    res.status(200).json({ message: 'Booking cancelled successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 // Get all users
 export const getAllUsers = async (req, res) => {
@@ -14,11 +69,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-
-
-
-
-// Delete user
 export const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -39,13 +89,14 @@ export const deleteUser = async (req, res) => {
       return res.status(403).json({ message: 'Cannot restrict admin accounts' });
     }
 
-    user.deleteOne()
+    await user.deleteOne();
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 // Activate user
 export const activateUser = async (req, res) => {

@@ -1,11 +1,134 @@
 import User from '../models/user.js';
-import Invitation from '../models/invitation.js';
+import Release from '../models/release.js'; // You'll need to create this model
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import sendEmail from '../utils/sendEmail.js';
-import Success from '../models/success.js';
-import Item from '../models/item.js';
 
+// Get user releases
+export const getUserReleases = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    // Check if user is an artist
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    if (user.role !== 'artist') {
+      return res.status(403).json({ message: 'Only artists can have releases' });
+    }
+    
+    // Find releases for the user
+    const releases = await Release.find({ artist: userId }).sort({ createdAt: -1 });
+    
+    res.status(200).json({
+      success: true,
+      releases
+    });
+  } catch (error) {
+    console.error('Error fetching releases:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// Add a new release
+export const addRelease = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { title, platform, link } = req.body;
+    
+    // Check if user is an artist
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    if (user.role !== 'artist') {
+      return res.status(403).json({ message: 'Only artists can add releases' });
+    }
+    
+    // Validate input
+    if (!title || !platform || !link) {
+      return res.status(400).json({ message: 'Title, platform, and link are required' });
+    }
+    
+    // Validate platform
+    if (!['youtube', 'spotify'].includes(platform)) {
+      return res.status(400).json({ message: 'Platform must be either youtube or spotify' });
+    }
+    
+    // Validate link format based on platform
+    if (platform === 'youtube' && !link.includes('youtube.com') && !link.includes('youtu.be')) {
+      return res.status(400).json({ message: 'Please provide a valid YouTube link' });
+    }
+    
+    if (platform === 'spotify' && !link.includes('spotify.com')) {
+      return res.status(400).json({ message: 'Please provide a valid Spotify link' });
+    }
+    
+    // Create new release
+    const newRelease = new Release({
+      title,
+      platform,
+      link,
+      artist: userId
+    });
+    
+    await newRelease.save();
+    
+    res.status(201).json({
+      success: true,
+      message: 'Release added successfully',
+      release: newRelease
+    });
+  } catch (error) {
+    console.error('Error adding release:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// Delete a release
+export const deleteRelease = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { releaseId } = req.params;
+    
+    // Find the release
+    const release = await Release.findById(releaseId);
+    if (!release) {
+      return res.status(404).json({ message: 'Release not found' });
+    }
+    
+    // Check if user owns the release
+    if (release.artist.toString() !== userId) {
+      return res.status(403).json({ message: 'You can only delete your own releases' });
+    }
+    
+    // Delete the release
+    await Release.findByIdAndDelete(releaseId);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Release deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting release:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
 
 // Get user success rate
 export const getUserSuccessRate = async (req, res) => {

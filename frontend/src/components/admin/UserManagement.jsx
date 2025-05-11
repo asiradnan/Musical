@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import useAdminStore from '../../store/adminStore';
+import UserPointsModal from './UserPointsModal';
+import { FaGift } from 'react-icons/fa';
 
 const UserManagement = () => {
-  const { 
-    users, 
-    isLoading, 
-    error, 
-    getAllUsers, 
-    deleteUser 
+  const {
+    users,
+    isLoading,
+    error,
+    getAllUsers,
+    deleteUser
   } = useAdminStore();
-  
+  const [selectedUserForPoints, setSelectedUserForPoints] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
+  const [message, setMessage] = useState('');
   useEffect(() => {
     getAllUsers();
   }, [getAllUsers]);
@@ -24,7 +26,7 @@ const UserManagement = () => {
 
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
-    
+
     const result = await deleteUser(selectedUser._id);
     if (result) {
       alert('User deleted successfully');
@@ -38,11 +40,21 @@ const UserManagement = () => {
     setSelectedUser(null);
     setShowConfirmDialog(false);
   };
+  const handleManagePoints = (user) => {
+    setSelectedUserForPoints(user);
+  };
+
+  // Add this function to handle successful points addition
+  const handlePointsSuccess = (result) => {
+    setMessage(`Points added successfully. User now has ${result.currentPoints} points and is in the ${result.tier} tier.`);
+    getAllUsers(); // Refresh the user list
+    setSelectedUserForPoints(null);
+  };
 
   return (
     <div className="p-5 text-white"> {/* Ensure text is white in dark mode */}
       <h1 className="text-2xl font-bold mb-5">User Management</h1>
-      
+
       {isLoading ? (
         <div className="py-4">Loading users...</div>
       ) : error ? (
@@ -73,11 +85,18 @@ const UserManagement = () => {
                   </td>
                   <td className="py-2 px-4 border-b border-gray-700">{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td className="py-2 px-4 border-b border-gray-700">
-                    <button 
+                    <button
                       className="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded text-sm"
                       onClick={() => confirmDelete(user)}
                     >
                       Delete
+                    </button>
+                    <button
+                      onClick={() => handleManagePoints(user)}
+                      className="text-purple-400 hover:text-purple-300 mr-2"
+                      title="Manage Points"
+                    >
+                      <FaGift />
                     </button>
                   </td>
                 </tr>
@@ -96,13 +115,13 @@ const UserManagement = () => {
               Are you sure you want to delete <span className="font-semibold">{selectedUser?.name}</span>? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
-              <button 
+              <button
                 className="px-4 py-2 border border-gray-600 rounded hover:bg-gray-700 transition"
                 onClick={cancelDelete}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
                 onClick={handleDeleteUser}
               >
@@ -111,6 +130,13 @@ const UserManagement = () => {
             </div>
           </div>
         </div>
+      )}
+      {selectedUserForPoints && (
+        <UserPointsModal
+          user={selectedUserForPoints}
+          onClose={() => setSelectedUserForPoints(null)}
+          onSuccess={handlePointsSuccess}
+        />
       )}
     </div>
   );

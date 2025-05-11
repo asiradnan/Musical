@@ -5,7 +5,13 @@ import { connectDB } from './config/db.js';
 import router from './routes/route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import productRoutes from './routes/product.js';
+import cartRoutes from './routes/cart.js';
 
+import instrumentRoutes from './routes/r.js';
+
+// Use the instrument routes
+router.use('/r', instrumentRoutes)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config();
@@ -18,6 +24,9 @@ app.use(express.json());
 
 // Routes
 app.use('/api', router);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+
 // Update the static file serving path to point to the correct directory
 const projectRoot = path.join(__dirname, '..');
 const uploadsPath = path.join(projectRoot, 'uploads');

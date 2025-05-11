@@ -64,6 +64,12 @@ const AboutPage = () => {
           
           <div className="mb-12">
             <h2 className="text-3xl font-semibold mb-6 text-center">Connect With Us</h2>
+            <div className="text-center">
+            <p className="mb-2">Email: contact@resonance.com</p>
+            <p className="mb-2">Phone: +880 12345678</p>
+            <p className="mb-2">Address: 123 Music Avenue, Harmony City, HC 98765</p>
+            <p className="mt-4">For support inquiries, please email <span className="text-blue-400">support@resonance.com</span></p>
+          </div>
             <div className="flex justify-center space-x-8">
               <a 
                 href="https://instagram.com/resonance" 
@@ -103,11 +109,8 @@ const AboutPage = () => {
             </div>
           </div>
           
-          <div className="text-center">
-            <Link to="/contact" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-              Contact Us
-            </Link>
-          </div>
+          
+
         </div>
       </div>
       

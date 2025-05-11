@@ -49,10 +49,10 @@ const HomePage = () => {
             Your ultimate destination for studio bookings, instrument shopping, and musician collaboration.
           </p>
           <div className="mt-8 flex space-x-4">
-            <Link to="/studios" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <Link to="/booking" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               Book Studios
             </Link>
-            <Link to="/shop" className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            <Link to="/products" className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
               Shop Instruments
             </Link>
           </div>
